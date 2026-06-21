@@ -12,6 +12,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, confusion_matrix
 
 
 # =============================================================================
@@ -111,6 +112,41 @@ def train_model(X_train_tfidf, y_train: pd.Series) -> MultinomialNB:
     model.fit(X_train_tfidf, y_train)
     return model
 
+# =============================================================================
+# 4. MODEL EVALUATION
+# =============================================================================
+
+def evaluate_model(model, X_test_tfidf, y_test):
+    predictions = model.predict(X_test_tfidf)
+
+    accuracy = accuracy_score(y_test, predictions)
+    matrix = confusion_matrix(y_test, predictions, labels=['spam', 'ham'])
+
+    print("\nModel Evaluation")
+    print("-" * 45)
+    print(f"Accuracy: {accuracy * 100:.2f}%")
+
+    print("\nConfusion Matrix:")
+    print("                 Predicted")
+    print("              Spam     Ham")
+    print(f"Actual Spam     {matrix[0][0]}       {matrix[0][1]}")
+    print(f"Actual Ham      {matrix[1][0]}       {matrix[1][1]}")
+
+# =============================================================================
+# 5. CONFIDENCE SCORES + INTERACTIVE PREDICTION
+# =============================================================================
+
+def predict_message(model, vectorizer, message: str):
+    message_tfidf = vectorizer.transform([message])
+
+    prediction = model.predict(message_tfidf)[0]
+    probabilities = model.predict_proba(message_tfidf)[0]
+
+    confidence = max(probabilities) * 100
+
+    print(f"Prediction: {prediction.upper()}")
+    print(f"Confidence: {confidence:.2f}%")
+
 
 # =============================================================================
 # MAIN
@@ -147,6 +183,21 @@ def main():
     print("\nTraining model ...")
     model = train_model(X_train_tfidf, y_train)
     print("Model training complete.")
+
+    # ── 5. Evaluate model ─────────────────────────────
+    evaluate_model(model, X_test_tfidf, y_test)
+
+    # ── 6. Interactive prediction loop ────────────────
+    print("\nType 'quit' to exit.")
+
+    while True:
+        message = input("\nEnter message: ")
+
+        if message.lower() == "quit":
+            print("Goodbye!")
+            break
+
+        predict_message(model, vectorizer, message)
 
 
 if __name__ == "__main__":
