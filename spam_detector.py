@@ -13,6 +13,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, confusion_matrix
+import matplotlib.pyplot as plt
 
 
 # =============================================================================
@@ -122,9 +123,24 @@ def evaluate_model(model, X_test_tfidf, y_test):
     accuracy = accuracy_score(y_test, predictions)
     matrix = confusion_matrix(y_test, predictions, labels=['spam', 'ham'])
 
-    print("\nModel Evaluation")
-    print("-" * 45)
-    print(f"Accuracy: {accuracy * 100:.2f}%")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    im = ax.imshow(matrix, cmap='Blues')
+
+    ax.set_xticks([0, 1]) #
+    ax.set_yticks([0, 1])
+    ax.set_xticklabels(['Spam', 'Ham'])
+    ax.set_yticklabels(['Spam', 'Ham'])
+    ax.set_xlabel('Predicted')
+    ax.set_ylabel('Actual')
+    ax.set_title('Confusion Matrix')
+
+    for i in range(2):
+        for j in range(2):
+            ax.text(j, i, matrix[i, j], ha='center', va='center', fontsize=14)
+
+    plt.colorbar(im)
+
+    print(f"\nAccuracy: {accuracy * 100:.2f}%")
 
     print("\nConfusion Matrix:")
     print("                 Predicted")
@@ -132,8 +148,24 @@ def evaluate_model(model, X_test_tfidf, y_test):
     print(f"Actual Spam     {matrix[0][0]}       {matrix[0][1]}")
     print(f"Actual Ham      {matrix[1][0]}       {matrix[1][1]}")
 
+    return fig
+
+
+def plot_class_distribution(df: pd.DataFrame):
+    counts = df['label'].value_counts()
+    colors = ['#ff7f7f', '#7fbfff']
+
+    fig, ax = plt.subplots(figsize=(5, 4))
+    bars = ax.bar(counts.index, counts.values, color=colors)
+    ax.set_ylabel('Number of Messages')
+    ax.set_title('Spam vs Ham Distribution')
+    ax.bar_label(bars, fontsize=12)
+    plt.tight_layout()
+    return fig
+
+
 # =============================================================================
-# 5. CONFIDENCE SCORES + INTERACTIVE PREDICTION
+# 6. CONFIDENCE SCORES + INTERACTIVE PREDICTION
 # =============================================================================
 
 def predict_message(model, vectorizer, message: str):
@@ -185,9 +217,16 @@ def main():
     print("Model training complete.")
 
     # ── 5. Evaluate model ─────────────────────────────
-    evaluate_model(model, X_test_tfidf, y_test)
+    fig_cm = evaluate_model(model, X_test_tfidf, y_test)
 
-    # ── 6. Interactive prediction loop ────────────────
+    # ── 6. Plot class distribution ─────────────────────
+    fig_dist = plot_class_distribution(df)
+
+    # Show both plots, then close to prevent duplicate windows
+    plt.show()
+    plt.close('all')
+
+    # ── 7. Interactive prediction loop ────────────────
     print("\nType 'quit' to exit.")
 
     while True:
