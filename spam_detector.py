@@ -219,10 +219,9 @@ def main():
     # ── 5. Evaluate model ─────────────────────────────
     fig_cm = evaluate_model(model, X_test_tfidf, y_test)
 
-    # ── 6. Plot class distribution ─────────────────────
+
     fig_dist = plot_class_distribution(df)
 
-    # Show both plots, then close to prevent duplicate windows
     plt.show()
     plt.close('all')
 
